@@ -5,11 +5,19 @@ email: fbollati@studenti.uninsubria.it
 
 Analytical_Kinks contains:
 
-ChannelMaps.py -- computes planet-induced nonlinear velocity and density perturbations, produces channel maps figures
-                  and saves them as CM_NoPlanet.png, CM_PlanetNoVisc.png, CM_PlanetVisc.png
-Functions.py -- contains definitions of functions used by ChannelMaps.py
-X_final.dat, Y_final.dat, utot_final.dat, vtot_final.dat, ky12.0x2.dat  -- contain data concerning the linear perturbations
-CM_NoPlanet.png, CM_PlanetNoVisc.png, CM_PlanetVisc.png -- a preview of the output figures
+ChannelMaps.py      -- computes planet-induced nonlinear velocity and density perturbations, produces channel maps figures
+                       and saves them as CM_NoPlanet.png, CM_PlanetNoVisc.png, CM_PlanetVisc.png                  
+Functions.py        -- contains definitions of functions used by ChannelMaps.py
+
+X_final.dat         -- data concerning the linear perturbations
+Y_final.dat         --     "                    "
+utot_final.dat      --     "                    "
+vtot_final.dat      --     "                    "
+ky12.0x2.dat        --     "                    "
+
+CM_NoPlanet.png.    -- a preview of the output figures
+CM_PlanetNoVisc.png --     "                    "
+CM_PlanetVisc.png   --     "                    "
 
 
 
@@ -20,6 +28,8 @@ Run "python ChannelMaps.py" on your terminal, in the directory Analytical_Kinks.
 
 
 
-WARNING: During the next few days I am going to make many many changes in order to make the code more readable, easier to use
+WARNING: 
+
+During the next few days I am going to make many many changes in order to make the code more readable, easier to use
 and hopefully a bit more efficient. I will also provide soon the script that computes the linear density and velocity
 perturbations.
