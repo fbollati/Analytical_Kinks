@@ -1,0 +1,37 @@
+% PHYSICAL PARAMETERS
+
+Mstar   1.9
+Mplanet   2
+Rdisc   380
+Rplanet   270
+cw   1
+q   0.25
+p   1
+hrp   0.1
+malpha   0.2
+indad   1.6666667
+
+PA   33.75
+PAp   60
+inclination  -45
+
+channel_velocities  1
+channel_resolution 0.08
+
+
+
+% NUMERICAL PARAMETERS
+
+Nr 500
+Nphi 500
+x_MatchLinearAndNonlinear 2
+Rmin 100
+
+
+
+% PLOT PARAMETERS
+
+density
+%xrange 60 140
+%yrange -40 40
+show
