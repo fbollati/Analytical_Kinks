@@ -1,0 +1,37 @@
+%%%%% PHYSICAL PARAMETERS
+
+Mstar   1            % mass of the star in solar masses
+Mplanet   1          % mass of the planet in jupiter masses
+Rdisc   300          % disc radius in AU
+Rplanet   100        % planet orbital radius in AU
+cw   -1              % cw = 1 -> disc rotates clockwise, cw = -1 -> disc rotates counterclockwise
+q   0.25             % sound speed profile index: cs(r) = cs_p * (r/R_planet)^{-q}
+p   1                % surface density profile index: Sigma(r) = Sigma_p * (r/R_planet)^{-q}
+hrp   0.1            % disc aspect-ratio h/r at Rplanet
+malpha   0           % viscous damping parameter (Eq. 44 Bollati et al. 2021)
+indad   1.6666667    % adiabatic index
+
+PA   0               % position angle (angle between disc major axis and positive x-axis of the sky plane), range: [0, 180)
+PAp   90             % angle between planet and the upper disc semi-major axis, range: [0, 360)
+inclination  30      % angle between disc normal axis and line of sight, range: [-90, 90]
+
+channel_velocities  0.2 0.9 1.6 -0.1 -0.9 -1.6   % (optional) channel velocities in km/s. Omit this flag to avoid channel maps computation
+channel_resolution  0.08                         % (optional) channel maps semi-width in km/s. Default = 0.05
+
+
+
+%%%%% NUMERICAL PARAMETERS
+
+Nr 200                        % number of radial grid points
+Nphi 200                      % number or azimuthal grid points
+x_MatchLinearAndNonlinear  2  % half of the liner box side in units of 2*h_p/3 (section 2.3 Bollati et al. 2021)
+Rmin 10                       % (optional) minimun disc radius in AU. Default Rmin = Rdisc/50
+
+
+
+%%%%% PLOT PARAMETERS
+
+density                      % (optional) plot total density perturbation
+xrange 60 140                % (optional) x range for plots (in AU)
+yrange -40 40                % (optional) y range for plots (in AU)
+show                         % (optional) show figures, don't save. Default: save figures, don't show.
