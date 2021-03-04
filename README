@@ -10,7 +10,7 @@ ChannelMaps_functions.py                       % functions definitions
 ChannelMaps_settings.py                        % global variables and initialization functions
 ChannelMaps.param                              % parameter file
 help.param                                     % instructions for parameter file
-X.dat, Y.dat, utot.dat, vtot.dat, stot.dat     % output linear perturbations computation
+X.dat, Y.dat, utot.dat, vtot.dat, stot.dat     % output linear perturbations computation (unpack tar.gz)
 README                                         % this file
 
 
