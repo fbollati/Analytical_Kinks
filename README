@@ -18,3 +18,9 @@ Usage:
 
 Run "python ChannelMaps_main.py ChannelMaps.param" on your terminal, in the directory Analytical_Kinks.
 (I recommend python version >= 3.8)
+
+
+
+Warning:
+
+Still bad behavior changing parameter "x_MatchLinearAndNonlinear".
