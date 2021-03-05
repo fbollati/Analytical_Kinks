@@ -140,6 +140,8 @@ def extract_burgers_IC(): # take the initial condition for burgers equation from
    eta = y_cut - y_match*np.ones(len(y_cut))
    profile = profile[(y-y_match>-eta_max) & (y-y_match<eta_max)]
 
+   # set t0 (t correponding to the x_match)
+   s.t0 = t(s.Rp + s.l*s.x_match)
 
    # set eta_tilde:
    for i in range(len(eta)):
@@ -155,6 +157,9 @@ def extract_burgers_IC(): # take the initial condition for burgers equation from
    C0 = -np.trapz(profile0, dx =  deta)
    s.C = (s.indad + 1)*s.betap*C0/2**(3/4)
 
+   print('     eta_tilde = ',s.eta_tilde)
+   print('     C0 = ',C0)
+   print('     t0 = ',s.t0)
 
    return eta,profile
 
@@ -168,7 +173,7 @@ def solve_burgers(eta,profile): # Solve eq. (10) Bollati et al. 2021
 
    tf_th = 300 # time required to develop N-wave for betap = 1
    tf = tf_th/s.betap # time required to display N-wave for generic betap, Eq. (39) Rafikov 2002
-   dt = 0.03
+   dt = 0.02
    Nt = int(tf/dt) + 1
 
    eta_min = -s.eta_tilde-np.sqrt(2*s.C*tf) - 3  # Eq. (18) Bollati et al. 2021
