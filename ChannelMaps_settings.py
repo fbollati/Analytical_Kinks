@@ -133,10 +133,9 @@ def init(file):
     # OTHER PARAMETERS (section 2.3 Bollati et al. 2021)
 
     global eta_tilde
-    global t0
+    global t0 # t coordinate corresponding to r = Rp + l * x_match
     global C # Eq. (16) Bollati et al. 2021
 
-    t0 = 1.89
 
     global vKp  # planet keplerian velocity
     global csp  # local sound speed (at Rp)
