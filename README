@@ -23,4 +23,4 @@ Run "python ChannelMaps_main.py ChannelMaps.param" on your terminal, in the dire
 
 Warning:
 
-Still bad behavior changing parameter "x_MatchLinearAndNonlinear".
+Still bad behavior using x_MatchLinearAndNonlinear > 2.
