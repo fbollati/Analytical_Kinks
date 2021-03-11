@@ -492,6 +492,8 @@ def merge_density_lin_nonlin(xl,yl,dl,dnl):
                    dnl[j,i] += dl[indy,indx]*damp
     return dnl
 
+def get_normalise_density_field(dens_pert):
+    return s.R**(-s.p) + dens_pert
 
 ## FUNCTIONS FOR PLOTS ....
 
