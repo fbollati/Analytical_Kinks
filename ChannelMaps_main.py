@@ -69,7 +69,7 @@ if s.density:
 if np.ndim(s.vchs)>0:
 
     print('~ Getting velocity Cartesian components ...')
-    v_field0 = f.get_velocity_Cartesian_components(np.zeros((s.Nr,s.Nphi)),-s.cw * vK)
+    v_field0 = f.get_velocity_Cartesian_components(np.zeros((s.Nphi,s.Nr)),-s.cw * vK)
     v_field = f.get_velocity_Cartesian_components(vr,vphi)
 
     print('~ Rotating mesh and velocity field ...')

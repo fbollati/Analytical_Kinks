@@ -16,7 +16,7 @@ def vKepler(R,M):
 
 def create_Keplerian_velocity_field():
 
-    vK = np.zeros((s.Nr,s.Nphi))
+    vK = np.zeros((s.Nphi,s.Nr))
     for i in range(s.Nr):
         vK[:,i] = vKepler(s.R[0,i],s.M) * np.ones(s.Nphi)
     return vK
@@ -83,9 +83,9 @@ def upload_linear_perturbations():
 
 def vKepler_plus_linear_pert(xl,yl,ul,vl,vK):
 
-    vr = np.zeros((s.Nr,s.Nphi))
-    vphi = np.zeros((s.Nr,s.Nphi))
-    deltav = np.zeros((s.Nr,s.Nphi))
+    vr = np.zeros((s.Nphi,s.Nr))
+    vphi = np.zeros((s.Nphi,s.Nr))
+    deltav = np.zeros((s.Nphi,s.Nr))
 
     vphi = - s.cw * vK.copy()
 
@@ -394,9 +394,9 @@ def compute_nonlinear_pert():
 
    tf = time[-1]
 
-   dnl = np.zeros((s.Nr,s.Nphi))
-   unl = np.zeros((s.Nr,s.Nphi))
-   vnl = np.zeros((s.Nr,s.Nphi))
+   dnl = np.zeros((s.Nphi,s.Nr))
+   unl = np.zeros((s.Nphi,s.Nr))
+   vnl = np.zeros((s.Nphi,s.Nr))
 
    r = s.R[0,:]
    phi = s.PHI[:,0]
@@ -579,7 +579,7 @@ def make_contourplot(field, bar_label = None, title = None, saveas = None, WithC
 
 def get_velocity_Cartesian_components(vr,vphi):
 
-    v_field = np.zeros((s.Nr,s.Nphi,3))
+    v_field = np.zeros((s.Nphi,s.Nr,3))
     v_field[:,:,0] = - vphi * np.sin(s.PHI) + vr * np.cos(s.PHI)  # funziona sia che la rotazione sia cw = \pm 1.
     v_field[:,:,1] = vphi * np.cos(s.PHI) + vr * np.sin(s.PHI)
 
