@@ -121,8 +121,8 @@ def init(file):
     global R,PHI,X,Y
     global disc_edge
 
-    #r = np.linspace(Rmin,Rdisc,Nr)
-    r = np.geomspace(Rmin,Rdisc,Nr)
+    r = np.linspace(Rmin,Rdisc,Nr)
+    #r = np.geomspace(Rmin,Rdisc,Nr)
     phi = np.linspace(0,2*np.pi,Nphi)
     R,PHI = np.meshgrid(r,phi)
     X = R*np.cos(PHI)
