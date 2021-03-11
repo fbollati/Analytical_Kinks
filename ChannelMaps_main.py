@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import os
 
 import ChannelMaps_functions as f
 import ChannelMaps_settings as s
@@ -12,10 +13,11 @@ if len(sys.argv) != 2:
 
 file = str(sys.argv[1])
 
-
-
 print('\n~ Reading parameter file, initializing global variables and meshgrid ...')
 s.init(file)
+
+path = s.name + '/'
+os.makedirs(path, exist_ok=True)
 
 print('~ Creating Keplerian velocity field ...')
 vK = f.create_Keplerian_velocity_field()
@@ -35,17 +37,30 @@ vr,vphi,deltav = f.add_nonlinear_pert(unl,vnl,vr,vphi,deltav,vK)
 if s.density:
     density_pert = f.merge_density_lin_nonlin(xl,yl,dl,dnl)
 
+print('~ Saving output fields to files')
+
+if s.density:
+    np.save(path + 'density_pert.npy', density_pert)
+    rho = f.get_normalise_density_field(density_pert)
+    np.save(path + 'density.npy', rho)
+
+np.save(path + 'vr.npy', vr)
+np.save(path + 'vphi.npy', vphi)
+np.save(path + 'deltavphi.npy', vphi - (-s.cw * vK))
+np.save(path + 'deltav.npy', deltav)
+
+
 print('~ Making figures ...')
-f.make_contourplot(deltav, bar_label='$\\delta v(r,\\varphi)$', saveas = 'delta_v')
-f.make_contourplot(vphi - (-s.cw * vK), bar_label='$v(r,\\varphi)$  [km/s]', saveas = 'azimuthal_vel_pert')
+f.make_contourplot(deltav, bar_label='$\\delta v(r,\\varphi)$', saveas = path +'delta_v')
+f.make_contourplot(vphi - (-s.cw * vK), bar_label='$v(r,\\varphi)$  [km/s]', saveas = path + 'azimuthal_vel_pert')
 f.make_contourplot(vr, bar_label='$u(r,\\varphi)$  [km/s]', saveas = 'radial_vel_pert')
 if s.density:
-    f.make_contourplot(density_pert, bar_label = '$(\Sigma - \Sigma _0)\Sigma _0^{-1}$', saveas = 'density_pert')
+    f.make_contourplot(density_pert, bar_label = '$(\Sigma - \Sigma _0)\Sigma _0^{-1}$', saveas = path + 'density_pert')
 
-if np.ndim(s.vchs)>0:
+if np.ndim(s.vchs) > 0:
 
     print('~ Getting velocity Cartesian components ...')
-    v_field0 = f.get_velocity_Cartesian_components(np.zeros((s.Nr,s.Nphi)),-s.cw * vK)
+    v_field0 = f.get_velocity_Cartesian_components(np.zeros((s.Nphi,s.Nr)),-s.cw * vK)
     v_field = f.get_velocity_Cartesian_components(vr,vphi)
 
     print('~ Rotating mesh and velocity field ...')
@@ -54,6 +69,6 @@ if np.ndim(s.vchs)>0:
     v_field = f.rotate_velocity_field(v_field)
 
     print('~ Making channel maps plot ...')
-    f.make_contourplot(v_field[:,:,2]-v_field0[:,:,2], bar_label='$\\Delta v_n (r,\\varphi)$   [km/s]', WithChannels = True, vz_field = v_field[:,:,2])
+    f.make_contourplot(v_field[:,:,2]-v_field0[:,:,2], bar_label='$\\Delta v_n (r,\\varphi)$   [km/s]', WithChannels = True, vz_field = v_field[:,:,2], saveas = path + 'contour.pdf')
 
 print('~ Done! \n')

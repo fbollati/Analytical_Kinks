@@ -45,10 +45,11 @@ def init(file):
     global PA, PAp, i, xi
     global vchs, delta_vch
     global Nr, Nphi, Rmin, x_match
-    global show,xrange,yrange, density
+    global show,xrange,yrange,density,name
 
     params = read_parameters(file)
 
+    name = str(params['name'])
     M = float(params['Mstar'])
     Mp = float(params['Mplanet'])
     Rdisc = float(params['Rdisc'])
@@ -121,6 +122,7 @@ def init(file):
     global disc_edge
 
     r = np.linspace(Rmin,Rdisc,Nr)
+    #r = np.geomspace(Rmin,Rdisc,Nr)
     phi = np.linspace(0,2*np.pi,Nphi)
     R,PHI = np.meshgrid(r,phi)
     X = R*np.cos(PHI)
