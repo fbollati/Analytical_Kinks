@@ -4,6 +4,7 @@ from mpl_toolkits import mplot3d
 from scipy.integrate import quad
 import sys
 import ChannelMaps_settings as s
+from scipy.interpolate import RectBivariateSpline
 
 
 
@@ -173,8 +174,6 @@ def solve_burgers(eta,profile): # Solve eq. (10) Bollati et al. 2021
 
    tf_th = 300 # time required to develop N-wave for betap = 1
    tf = tf_th/s.betap # time required to display N-wave for generic betap, Eq. (39) Rafikov 2002
-   dt = 0.02
-   Nt = int(tf/dt) + 1
 
    eta_min = -s.eta_tilde-np.sqrt(2*s.C*tf) - 3  # Eq. (18) Bollati et al. 2021
    eta_max = -s.eta_tilde+np.sqrt(2*s.C*tf) + 3
@@ -199,15 +198,16 @@ def solve_burgers(eta,profile): # Solve eq. (10) Bollati et al. 2021
    T  = tf    # final time
 
    # set time array
-   time = np.array([dt*i for i in range(Nt)])
+
    x = np.zeros(Neta+1) # cells edges
    for i in range(0,Neta+1):
        x[i] = a+i*deta
 
-   solution = np.zeros((Neta,Nt), dtype=float)
+   solution = [np.zeros((Neta),  dtype=float)]
+   time = [0]
+
    # linear solution as initial condition
-   for i in range(0,Neta):
-      solution[i,0] = profile[i]
+   solution[0] = profile
 
    # define flux vector
    F = np.zeros(Neta+1) #there is a flux at each cell edge!!!!!
@@ -248,53 +248,65 @@ def solve_burgers(eta,profile): # Solve eq. (10) Bollati et al. 2021
        return GodunovNumericalFlux(uL,uR);
 
    # time integrate
-   for n in range(0,Nt-1):
-
-      # estimate the CFL
-      CFL = max(abs(solution[:,n])) * dt / deta
-      if CFL > 0.5:
-         print("Warning: CFL > 0.5")
+   lapsed_time = 0
+   counter = 0
+   while lapsed_time < tf:
+   #while counter < 10:
+      counter += 1
+      dt = min(deta * s.CFL / (max(abs(solution[-1])) + 1e-8), 0.02)
+      #print('max of sol = ', max(abs(solution[-1])), ', dt = ', dt)
+      time.append(time[-1]+dt)
+      lapsed_time += dt
 
       # compute the interior fluxes
       for i in range(1,Neta):
-          uL = solution[i-1,n]
-          uR = solution[i,n]
+          uL = solution[-1][i-1]
+          uR = solution[-1][i]
           F[i] = NumericalFlux(uL,uR)
 
       # compute the left boundary flux
-      if solution[0,n] < 0.0:
-          uL = 2.0*solution[0,n] - solution[1,n]
+      if solution[-1][0] < 0.0:
+          uL = 2.0*solution[-1][0] - solution[-1][1]
       else:
-          uL = solution[0,0]
-      uR = solution[0,n]
+          uL = solution[0][0]
+      uR = solution[-1][0]
       F[0] = NumericalFlux(uL,uR)
 
       # compute the right boundary flux
-      if solution[Neta-1,n] > 0.0:
-          uR = 2.0 * solution[Neta-1,n] - solution[Neta-2,n]
+      if solution[-1][Neta-1] > 0.0:
+          uR = 2.0 * solution[-1][Neta-1] - solution[-1][Neta-2]
       else:
-          uR = solution[Neta-1,0]
-      uL = solution[Neta-1,n]
+          uR = solution[0][Neta-1]
+      uL = solution[-1][Neta-1]
       F[Neta] = NumericalFlux(uL,uR)
 
-      # update the state
-      for i in range(0,Neta):
-          solution[i,n+1] = solution[i,n] - dt / deta * (F[i+1] - F[i])
+      solution.append(solution[-1][0:Neta] - dt / deta * (F[1:Neta+1] - F[0:Neta]))
 
+   solution = np.array(solution).transpose()
+   time = np.array(time)
    # plot Fig. 3 Bollati et al. 2021
-   '''
-   plt.plot(eta, solution[:,0], label = "$t=t_0+$ "+str(0*dt))
-   plt.plot(eta, solution[:,int(Nt/20)], label = "$t=t_0+$ "+str(round(dt*Nt/10,2)))
-   plt.plot(eta, solution[:,int(Nt/10)], label = "$t=t_0+$ "+str(round(dt*Nt/6,2)))
-   plt.plot(eta, solution[:,int(Nt/5)], label = "$t=t_0+$ "+str(round(dt*Nt/3,2)))
-   plt.plot(eta, solution[:,int(Nt-1)], label = "$t=t_0+$ "+str(round(T,2)))
+   """
+   plt.plot(eta, solution[:,0], label = "$t=t_0+$ ")#+str(0*dt))
+   plt.plot(eta, solution[:,100], label = "$t=t_0+$ ")#+str(round(dt*Nt/10,2)))
+   plt.plot(eta, solution[:,200], label = "$t=t_0+$ ")#+str(round(dt*Nt/6,2)))
+   plt.plot(eta, solution[:,300], label = "$t=t_0+$ ")#+str(round(dt*Nt/3,2)))
+   plt.plot(eta, solution[:,400], label = "$t=t_0+$ ")#+str(round(T,2)))
    plt.legend()
    plt.xlabel("$\eta$")
    plt.ylabel("$\chi(t,\eta)$")
    plt.grid(True)
    plt.title('$\chi$ "evolution" $r > r_p$')
    plt.show()
-   '''
+   """
+
+   """
+   print(np.shape(solution))
+   plt.contourf(time[:3000], eta, solution[:,:3000], levels=np.arange(-30,30,0.05), cmap='RdBu')
+   plt.colorbar()
+   plt.show()
+   """
+
+   Nt = np.shape(solution)[1]
 
    solution_inner = np.zeros(solution.shape) # solution for r < Rp (and disc rotating counterclockwise)
    for i in range(Neta):
@@ -384,79 +396,132 @@ def Lambda_fv(r):      # Eq. (29) Bollati et al. 2021
 
 def compute_nonlinear_pert():
 
-   print('  * Extracting Burgers initial condition from linear density perturbation ...')
-   eta, profile = extract_burgers_IC()
+    print('  * Extracting Burgers initial condition from linear density perturbation ...')
+    eta, profile = extract_burgers_IC()
 
-   print('  * Solving Burgers equation ...')
-   time, eta, solution, eta_inner, solution_inner  = solve_burgers(eta,profile)
+    print('  * Solving Burgers equation ...')
+    time, eta, solution, eta_inner, solution_inner  = solve_burgers(eta,profile)
 
-   print('  * Computing nonlinear perturbations ...')
+    print('  * Computing nonlinear perturbations ...')
 
-   tf = time[-1]
+    tf = time[-1]
 
-   dnl = np.zeros((s.Nphi,s.Nr))
-   unl = np.zeros((s.Nphi,s.Nr))
-   vnl = np.zeros((s.Nphi,s.Nr))
+    dnl = np.zeros((s.Nphi,s.Nr))
+    unl = np.zeros((s.Nphi,s.Nr))
+    vnl = np.zeros((s.Nphi,s.Nr))
 
-   r = s.R[0,:]
-   phi = s.PHI[:,0]
+    r = s.R[0,:]
+    phi = s.PHI[:,0]
 
-   for i in range(s.Nr):
-       rr = r[i]
-       if (rr < (s.Rp - s.x_match*s.l)) or (rr >(s.Rp + s.x_match*s.l)): # non sono nell'annulus del linear regime .....
-           for j in range(s.Nphi):
-               pphi = phi[j]
+    for i in range(s.Nr):
+        rr = r[i]
+        for j in range(s.Nphi):
+            pphi = phi[j]
 
+            Chi = get_chi(pphi, rr, time, eta, eta_inner, solution, solution_inner, tf)
+            dnl[j,i], unl[j,i], vnl[j,i] = get_dens_vel(rr, Chi) # COMPUTE DENSITY AND VELOCITY PERTURBATIONS
 
-               # COMPUTATION OF Chi
+    return dnl, unl, vnl
 
-               # change coordinates of the grid point (rr,pphi) to (t1,eta1)
-               t1 = t(rr)
-               eta1 = Eta(rr,pphi)
+def compute_nonlinear_pert_cartesian():
 
-               if t1 < (tf + s.t0):   # use numerical solution before the profile develops N-wave
+    print('  * Extracting Burgers initial condition from linear density perturbation ...')
+    eta, profile = extract_burgers_IC()
 
-                   index_t = np.argmin( np.abs(s.t0 + time - t1) )
+    print('  * Solving Burgers equation ...')
+    time, eta, solution, eta_inner, solution_inner  = solve_burgers(eta,profile)
 
-                   # the density (Chi) azimuthal profile is flipped along the azimuthal direction
-                   # both passing from r > Rp to r < Rp and from cw = -1 to cw = +1:
+    print('  * Computing nonlinear perturbations ...')
 
-                   if s.cw*(rr-s.Rp) < 0:
-                       if eta1 > eta[-1] or eta1 < eta[0]:
-                           Chi = 0
-                       else:
-                           index_eta = np.argmin( np.abs(eta - eta1) )
-                           Chi = solution[index_eta,index_t]
-                   else:
-                        if eta1 > eta_inner[-1] or eta1 < eta_inner[0]:
-                            Chi = 0
-                        else:
-                            index_eta = np.argmin(np.abs(eta_inner - eta1))
-                            Chi = solution_inner[index_eta,index_t]
+    tf = time[-1]
 
+    dnl = np.zeros((s.Nphi,s.Nr))
+    unl = np.zeros((s.Nphi,s.Nr))
+    vnl = np.zeros((s.Nphi,s.Nr))
 
-               else: # for large t use the analytical N-wave shape (Eq. 17 Bollati et al. 2021)
+    x = np.linspace(-s.Rdisc,s.Rdisc,s.Nr)
+    y = np.linspace(-s.Rdisc,s.Rdisc,s.Nphi)
 
-                   extr_left = +s.cw * np.sign(rr-s.Rp) * s.eta_tilde - np.sqrt(2*s.C*(t1-s.t0))
-                   extr_right = +s.cw * np.sign(rr-s.Rp) * s.eta_tilde + np.sqrt(2*s.C*(t1-s.t0))
+    for i in range(s.Nr):
+        xx = x[i]
+        #if (rr < (s.Rp - s.x_match*s.l)) or (rr >(s.Rp + s.x_match*s.l)): # non sono nell'annulus del linear regime .....
+        for j in range(s.Nphi):
+            yy = y[j]
+            rr = np.sqrt(xx**2 + yy**2)
+            pphi = np.arctan2(yy, xx)
+            Chi = get_chi(pphi, rr, time, eta, eta_inner, solution, solution_inner, tf)
+            dnl[j,i], unl[j,i], vnl[j,i] = get_dens_vel(rr, Chi) # COMPUTE DENSITY AND VELOCITY PERTURBATIONS
 
-                   if eta1 > extr_left and eta1 < extr_right:
-                       Chi = (-s.cw * np.sign(rr-s.Rp) * eta1 + s.eta_tilde) / (t1-s.t0)  #eq.(29) nonlinear.pdf
-                   else:
-                       Chi = 0
+    return dnl, unl, vnl
 
-               # COMPUTE DENSITY AND VELOCITY PERTURBATIONS
-               g1 = g(rr)
-               dnl[j,i] = Chi * 2 / (g1*(s.indad + 1))     # Eq. (11) Bollati et al. 2021
+def get_chi(pphi, rr, time, eta, eta_inner, solution, solution_inner, tf):
+    # COMPUTATION OF Chi
 
-               Lfu = Lambda_fu(rr)
-               Lfv = Lambda_fv(rr)
-               unl[j,i] = np.sign(rr-s.Rp) * Lfu * Chi           # Eq. (23) Bollati et al. 2021
-               vnl[j,i] = np.sign(rr-s.Rp) * Lfv * Chi * (-s.cw) # Eq. (24) Bollati et al. 2021 (the sign of v is reversed if we change cw)
+    if (rr > (s.Rp - s.x_match*s.l)) and (rr <(s.Rp + s.x_match*s.l)): # exclude points inside anulus from linear regime
+        return 0.
 
-   return dnl, unl, vnl
+    # change coordinates of the grid point (rr,pphi) to (t1,eta1)
+    t1 = t(rr)
+    eta1 = Eta(rr,pphi)
 
+    if t1 < (tf + s.t0):   # use numerical solution before the profile develops N-wave
+        index_t = np.argmax( (s.t0 + time) > t1 )
+        grid_t = [s.t0+time[index_t-1], s.t0+time[index_t]]
 
+        # the density (Chi) azimuthal profile is flipped along the azimuthal direction
+        # both passing from r > Rp to r < Rp and from cw = -1 to cw = +1:
+
+        if s.cw*(rr-s.Rp) < 0:
+            if eta1 > eta[-1] or eta1 < eta[0]:
+                Chi = 0
+            else:
+                index_eta = np.argmax( eta > eta1 )
+                grid_eta = np.array([eta[index_eta-1],eta[index_eta]])
+                grid_solution = np.array([
+                    [solution[index_eta-1,index_t-1], solution[index_eta-1,index_t]],
+                    [solution[index_eta,index_t-1], solution[index_eta,index_t]]
+                    ])
+
+                inter = RectBivariateSpline(grid_eta, grid_t, grid_solution, kx=1, ky=1)
+                Chi = inter(eta1, t1)
+
+        else:
+            if eta1 > eta_inner[-1] or eta1 < eta_inner[0]:
+                Chi = 0
+            else:
+                index_eta = np.argmax( eta_inner > eta1)
+                grid_eta = np.array([eta[index_eta-1],eta[index_eta]])
+                grid_eta = np.array([eta[index_eta-1],eta[index_eta]])
+                grid_solution = np.array([
+                    [solution_inner[index_eta-1,index_t-1], solution_inner[index_eta-1,index_t]],
+                    [solution_inner[index_eta,index_t-1], solution_inner[index_eta,index_t]]
+                    ])
+
+                inter = RectBivariateSpline(grid_eta, grid_t, grid_solution, kx=1, ky=1)
+                Chi = inter(eta1, t1)
+
+    else: # for large t use the analytical N-wave shape (Eq. 17 Bollati et al. 2021)
+
+        extr_left = +s.cw * np.sign(rr-s.Rp) * s.eta_tilde - np.sqrt(2*s.C*(t1-s.t0))
+        extr_right = +s.cw * np.sign(rr-s.Rp) * s.eta_tilde + np.sqrt(2*s.C*(t1-s.t0))
+
+        if eta1 > extr_left and eta1 < extr_right:
+            Chi = (-s.cw * np.sign(rr-s.Rp) * eta1 + s.eta_tilde) / (t1-s.t0)  #eq.(29) nonlinear.pdf
+        else:
+            Chi = 0
+
+    return Chi
+
+def get_dens_vel(rr, Chi):
+    g1 = g(rr)
+    dnl = Chi * 2 / (g1*(s.indad + 1))     # Eq. (11) Bollati et al. 2021
+
+    Lfu = Lambda_fu(rr)
+    Lfv = Lambda_fv(rr)
+    unl = np.sign(rr-s.Rp) * Lfu * Chi           # Eq. (23) Bollati et al. 2021
+    vnl = np.sign(rr-s.Rp) * Lfv * Chi * (-s.cw) # Eq. (24) Bollati et al. 2021 (the sign of v is reversed if we change cw)
+
+    return dnl, unl, vnl
 
 def add_nonlinear_pert(unl,vnl,vr,vphi,deltav,vK):
 
@@ -493,7 +558,7 @@ def merge_density_lin_nonlin(xl,yl,dl,dnl):
     return dnl
 
 def get_normalise_density_field(dens_pert):
-    return s.R**(-s.p) + dens_pert
+    return (s.R**(-s.p)*(1+dens_pert))
 
 ## FUNCTIONS FOR PLOTS ....
 

@@ -41,4 +41,4 @@ if np.ndim(s.vchs) > 0:
     v_field = f.rotate_velocity_field(v_field)
 
     print('~ Making channel maps plot ...')
-    f.make_contourplot(v_field[:,:,2]-v_field0[:,:,2], bar_label='$\\Delta v_n (r,\\varphi)$   [km/s]', WithChannels = True, vz_field = v_field[:,:,2], saveas = 'contour.pdf')
+    f.make_contourplot(v_field[:,:,2]-v_field0[:,:,2], bar_label='$\\Delta v_n (r,\\varphi)$   [km/s]', WithChannels = True, vz_field = v_field[:,:,2], saveas = dir + 'contour.pdf')
