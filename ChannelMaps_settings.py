@@ -44,7 +44,7 @@ def init(file):
     global M, Mp, Rdisc, Rp, cw, q, p, hr, malpha, indad
     global PA, PAp, i, xi
     global vchs, delta_vch
-    global Nr, Nphi, Rmin, x_match
+    global Nr, Nphi, Rmin, x_match, CFL
     global show,xrange,yrange,density,name
 
     params = read_parameters(file)
@@ -110,6 +110,7 @@ def init(file):
 
     Nr = int(params['Nr'])
     Nphi = int(params['Nphi'])
+    CFL = float(params['CFL'])
     x_match = float(params['x_MatchLinearAndNonlinear'])
 
     if 'Rmin' in params.keys():
@@ -118,11 +119,11 @@ def init(file):
         Rmin = Rdisc/50
 
 
-    global R,PHI,X,Y
+    global R,PHI,X,Y,r
     global disc_edge
 
-    r = np.linspace(Rmin,Rdisc,Nr)
-    #r = np.geomspace(Rmin,Rdisc,Nr)
+    #r = np.linspace(Rmin,Rdisc,Nr)
+    r = np.geomspace(Rmin,Rdisc,Nr)
     phi = np.linspace(0,2*np.pi,Nphi)
     R,PHI = np.meshgrid(r,phi)
     X = R*np.cos(PHI)

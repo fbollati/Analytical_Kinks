@@ -26,6 +26,7 @@ Nr 200                        % number of radial grid points
 Nphi 200                      % number or azimuthal grid points
 x_MatchLinearAndNonlinear  2  % half of the liner box side in units of 2*h_p/3 (section 2.3 Bollati et al. 2021)
 Rmin 10                       % (optional) minimun disc radius in AU. Default Rmin = Rdisc/50
+CFL                           % CFL for finite-volume scheme for burgers eqn
 
 
 

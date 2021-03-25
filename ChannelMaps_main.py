@@ -5,6 +5,10 @@ import os
 import ChannelMaps_functions as f
 import ChannelMaps_settings as s
 
+from GridMapper import grid_mapper
+
+import matplotlib.pyplot as plt
+
 
 if len(sys.argv) != 2:
     print("Error!")
@@ -22,6 +26,9 @@ os.makedirs(path, exist_ok=True)
 print('~ Creating Keplerian velocity field ...')
 vK = f.create_Keplerian_velocity_field()
 
+#plt.plot(s.r, vK[0,:])
+#plt.show()
+
 print('~ Uploading linear perturbations ...')
 xl,yl,dl,ul,vl = f.upload_linear_perturbations()
 
@@ -29,7 +36,24 @@ print('~ Adding linear perturbations to Keplerian velocity field ...')
 vr,vphi,deltav = f.vKepler_plus_linear_pert(xl,yl,ul,vl,vK)
 
 print('~ Nonlinear perturbations:')
+#dnl,unl,vnl = f.compute_nonlinear_pert_cartesian()
 dnl,unl,vnl = f.compute_nonlinear_pert()
+
+"""
+unl = 20*unl
+vnl = 20*vnl
+"""
+
+"""
+plt.imshow(dnl)
+plt.show()
+plt.imshow(unl)
+plt.show()
+plt.imshow(vnl)
+plt.show()
+"""
+
+
 
 print('~ Adding nonlinear perturbations ...')
 vr,vphi,deltav = f.add_nonlinear_pert(unl,vnl,vr,vphi,deltav,vK)
@@ -49,7 +73,11 @@ np.save(path + 'vphi.npy', vphi)
 np.save(path + 'deltavphi.npy', vphi - (-s.cw * vK))
 np.save(path + 'deltav.npy', deltav)
 
+#print('~ Interpolating to new grid')
 
+#grid_mapper(path)
+
+"""
 print('~ Making figures ...')
 f.make_contourplot(deltav, bar_label='$\\delta v(r,\\varphi)$', saveas = path +'delta_v')
 f.make_contourplot(vphi - (-s.cw * vK), bar_label='$v(r,\\varphi)$  [km/s]', saveas = path + 'azimuthal_vel_pert')
@@ -70,5 +98,6 @@ if np.ndim(s.vchs) > 0:
 
     print('~ Making channel maps plot ...')
     f.make_contourplot(v_field[:,:,2]-v_field0[:,:,2], bar_label='$\\Delta v_n (r,\\varphi)$   [km/s]', WithChannels = True, vz_field = v_field[:,:,2], saveas = path + 'contour.pdf')
+"""
 
 print('~ Done! \n')
