@@ -20,8 +20,14 @@ def create_Keplerian_velocity_field():
     vK = np.zeros((s.Nphi,s.Nr))
     for i in range(s.Nr):
         vK[:,i] = vKepler(s.R[0,i],s.M) * np.ones(s.Nphi)
-    return vK
 
+    corr = kep_pressure_correction()
+    print(corr)
+
+    return vK*corr
+
+def kep_pressure_correction():
+    return (1 - (2*s.q + s.p) * s.hr**2 * (s.R/s.Rp)**(1 - 2*s.q) )**(1/2)
 
 def upload_linear_perturbations():
 

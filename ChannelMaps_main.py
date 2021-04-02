@@ -1,11 +1,12 @@
 import numpy as np
 import sys
 import os
+import shutil as sh
 
 import ChannelMaps_functions as f
 import ChannelMaps_settings as s
 
-from GridMapper import grid_mapper
+#from GridMapper import grid_mapper
 
 import matplotlib.pyplot as plt
 
@@ -22,6 +23,8 @@ s.init(file)
 
 path = s.name + '/'
 os.makedirs(path, exist_ok=True)
+
+sh.copy(file, path)
 
 print('~ Creating Keplerian velocity field ...')
 vK = f.create_Keplerian_velocity_field()
