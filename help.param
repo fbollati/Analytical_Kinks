@@ -32,6 +32,7 @@ CFL                           % CFL for finite-volume scheme for burgers eqn
 
 %%%%% PLOT PARAMETERS
 
+name figs                    % name of directory for figures
 density                      % (optional) plot total density perturbation
 xrange 60 140                % (optional) x range for plots (in AU)
 yrange -40 40                % (optional) y range for plots (in AU)
