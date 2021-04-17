@@ -5,7 +5,7 @@ import os
 import ChannelMaps_functions as f
 import ChannelMaps_settings as s
 
-from GridMapper import grid_mapper
+#from GridMapper import grid_mapper
 
 import matplotlib.pyplot as plt
 
