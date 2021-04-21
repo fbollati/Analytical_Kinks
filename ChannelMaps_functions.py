@@ -22,9 +22,8 @@ def create_Keplerian_velocity_field():
         vK[:,i] = vKepler(s.R[0,i],s.M) * np.ones(s.Nphi)
 
     corr = kep_pressure_correction()
-    print(corr)
 
-    return vK*corr
+    return vK*corr 
 
 def kep_pressure_correction():
     return (1 - (2*s.q + s.p) * s.hr**2 * (s.R/s.Rp)**(1 - 2*s.q) )**(1/2)
@@ -38,6 +37,16 @@ def upload_linear_perturbations():
 
     s.Xlin = np.loadtxt('X.dat') # initialize linear mesh
     s.Ylin = np.loadtxt('Y.dat')
+
+    """
+    print("----------LOADED----------")
+
+    lin_perts = np.array([s.Ulin, s.Vlin, s.Dlin])
+    lin_mesh = np.array([s.Xlin, s.Ylin])
+
+    np.save("linear_perturbations.npy", lin_perts)
+    np.save("linear_perturbations_mesh.npy", lin_mesh)
+    """
 
     x = s.Xlin[0,:]
     y = s.Ylin[:,0]
@@ -220,7 +229,7 @@ def solve_burgers(eta,profile): # Solve eq. (10) Bollati et al. 2021
 
    # define the flux function of Burgers equation
    def flux(u):
-       return 0.5*u**2;
+       return 0.5*u**2
 
    # define the Central difference numerical flux---> ritorna la media aritmetica dei flux sx e dx passati
    def CentralDifferenceFlux(uL,uR):
@@ -251,7 +260,7 @@ def solve_burgers(eta,profile): # Solve eq. (10) Bollati et al. 2021
 
    def NumericalFlux(uL,uR):
        # return CentralDifferenceFlux(uL,uR)
-       return GodunovNumericalFlux(uL,uR);
+       return GodunovNumericalFlux(uL,uR)
 
    # time integrate
    lapsed_time = 0

@@ -43,11 +43,6 @@ print('~ Nonlinear perturbations:')
 dnl,unl,vnl = f.compute_nonlinear_pert()
 
 """
-unl = 20*unl
-vnl = 20*vnl
-"""
-
-"""
 plt.imshow(dnl)
 plt.show()
 plt.imshow(unl)
@@ -55,8 +50,6 @@ plt.show()
 plt.imshow(vnl)
 plt.show()
 """
-
-
 
 print('~ Adding nonlinear perturbations ...')
 vr,vphi,deltav = f.add_nonlinear_pert(unl,vnl,vr,vphi,deltav,vK)
