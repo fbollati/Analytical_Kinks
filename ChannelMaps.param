@@ -26,11 +26,13 @@ Nr 500
 Nphi 500
 x_MatchLinearAndNonlinear 2
 Rmin 100
+CFL 0.5
 
 
 
 % PLOT PARAMETERS
 
+name figs
 density
 %xrange 60 140
 %yrange -40 40
