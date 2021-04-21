@@ -119,7 +119,7 @@ def init(file):
         Rmin = Rdisc/50
 
 
-    global R,PHI,X,Y,r
+    global R,PHI,X,Y,r,x,y
     global disc_edge
 
     #r = np.linspace(Rmin,Rdisc,Nr)
@@ -128,6 +128,8 @@ def init(file):
     R,PHI = np.meshgrid(r,phi)
     X = R*np.cos(PHI)
     Y = R*np.sin(PHI)
+    x = np.linspace(-Rdisc,Rdisc,Nr)
+    y = np.linspace(-Rdisc,Rdisc,Nphi)
 
     disc_edge = np.array( [ [Rdisc*np.cos(i),Rdisc*np.sin(i)] for i in np.linspace(0,2*np.pi,200) ] )
 
