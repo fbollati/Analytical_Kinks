@@ -20,8 +20,24 @@ def create_Keplerian_velocity_field():
     vK = np.zeros((s.Nphi,s.Nr))
     for i in range(s.Nr):
         vK[:,i] = vKepler(s.R[0,i],s.M) * np.ones(s.Nphi)
+
+    corr = kep_pressure_correction()
+
+    return vK*corr
+
+def create_Keplerian_velocity_field_cartesian():
+    
+    vK = np.zeros((len(s.x),len(s.y)))
+    for i in range(len(s.x)):
+        for j in range(len(s.y)):
+            rr = np.sqrt(s.x[i]**2 + s.y[j]**2)
+            corr = (1 - (2*s.q + s.p) * s.hr**2 * (rr/s.Rp)**(1 - 2*s.q) )**(1/2)
+            vK[i,j] = vKepler(rr,s.M) * corr
+
     return vK
 
+def kep_pressure_correction():
+    return (1 - (2*s.q + s.p) * s.hr**2 * (s.R/s.Rp)**(1 - 2*s.q) )**(1/2)
 
 def upload_linear_perturbations():
 
@@ -32,6 +48,16 @@ def upload_linear_perturbations():
 
     s.Xlin = np.loadtxt('X.dat') # initialize linear mesh
     s.Ylin = np.loadtxt('Y.dat')
+
+    """
+    print("----------LOADED----------")
+
+    lin_perts = np.array([s.Ulin, s.Vlin, s.Dlin])
+    lin_mesh = np.array([s.Xlin, s.Ylin])
+
+    np.save("linear_perturbations.npy", lin_perts)
+    np.save("linear_perturbations_mesh.npy", lin_mesh)
+    """
 
     x = s.Xlin[0,:]
     y = s.Ylin[:,0]
@@ -106,6 +132,34 @@ def vKepler_plus_linear_pert(xl,yl,ul,vl,vK):
                    vr[j,i] += ul[indy,indx]*damp
                    vphi[j,i] += vl[indy,indx]*damp
                    deltav[j,i] = (np.sqrt(vr[j,i]**2+vphi[j,i]**2) - vK[j,i])/vK[j,i]
+
+    return vr,vphi,deltav
+
+def vKepler_plus_linear_pert_cartesian(xl,yl,ul,vl,vK):
+
+    vr = np.zeros((len(s.x),len(s.y)))
+    vphi = np.zeros((len(s.x),len(s.y)))
+    deltav = np.zeros((len(s.x),len(s.y)))
+
+    vphi = - s.cw * vK.copy()
+
+    for i in range(len(s.x)):
+       if s.x[i] >= (s.Rp - s.x_match*s.l) and s.x[i]<= (s.Rp + s.x_match*s.l):
+           for j in range(len(s.y)):
+               pphi = np.arctan2(s.y[j], s.x[i])
+               if s.y[j] >= - s.x_match*s.l and s.y[j] <= s.x_match*s.l and (pphi<np.pi/2 or pphi>3*np.pi/2):
+
+                   indx = np.argmin(np.abs(s.x[i]-xl)) # index of linear pert grid that best approximate the point (x[i],y[j]) of the disc grid .....
+                   indy = np.argmin(np.abs(s.y[j]-yl))
+
+                   if s.malpha == 0:
+                       damp = 1
+                   else:
+                       damp = viscous_damping_factor(s.x[i])
+
+                   vr[i,j] += ul[indy,indx]*damp
+                   vphi[i,j] += vl[indy,indx]*damp
+                   deltav[i,j] = (np.sqrt(vr[i,j]**2+vphi[i,j]**2) - vK[i,j])/vK[i,j]
 
     return vr,vphi,deltav
 
@@ -214,7 +268,7 @@ def solve_burgers(eta,profile): # Solve eq. (10) Bollati et al. 2021
 
    # define the flux function of Burgers equation
    def flux(u):
-       return 0.5*u**2;
+       return 0.5*u**2
 
    # define the Central difference numerical flux---> ritorna la media aritmetica dei flux sx e dx passati
    def CentralDifferenceFlux(uL,uR):
@@ -245,7 +299,7 @@ def solve_burgers(eta,profile): # Solve eq. (10) Bollati et al. 2021
 
    def NumericalFlux(uL,uR):
        # return CentralDifferenceFlux(uL,uR)
-       return GodunovNumericalFlux(uL,uR);
+       return GodunovNumericalFlux(uL,uR)
 
    # time integrate
    lapsed_time = 0
@@ -439,14 +493,11 @@ def compute_nonlinear_pert_cartesian():
     unl = np.zeros((s.Nphi,s.Nr))
     vnl = np.zeros((s.Nphi,s.Nr))
 
-    x = np.linspace(-s.Rdisc,s.Rdisc,s.Nr)
-    y = np.linspace(-s.Rdisc,s.Rdisc,s.Nphi)
-
-    for i in range(s.Nr):
-        xx = x[i]
+    for i in range(len(s.x)):
+        xx = s.x[i]
         #if (rr < (s.Rp - s.x_match*s.l)) or (rr >(s.Rp + s.x_match*s.l)): # non sono nell'annulus del linear regime .....
-        for j in range(s.Nphi):
-            yy = y[j]
+        for j in range(len(s.y)):
+            yy = s.y[j]
             rr = np.sqrt(xx**2 + yy**2)
             pphi = np.arctan2(yy, xx)
             Chi = get_chi(pphi, rr, time, eta, eta_inner, solution, solution_inner, tf)
@@ -525,21 +576,37 @@ def get_dens_vel(rr, Chi):
 
 def add_nonlinear_pert(unl,vnl,vr,vphi,deltav,vK):
 
-       for i in range(s.Nr):
-          rr = s.R[0,i]
-          if rr < (s.Rp - s.x_match*s.l) or rr > (s.Rp + s.x_match*s.l):  # outisde annulus of linear regime !!!
-              for j in range(s.Nphi):
-                  if s.malpha == 0:
-                      damp = 1
-                  else:
-                      damp = viscous_damping_factor(rr)
+    for i in range(s.Nr):
+        rr = s.R[0,i]
+        if rr < (s.Rp - s.x_match*s.l) or rr > (s.Rp + s.x_match*s.l):  # outisde annulus of linear regime !!!
+            for j in range(s.Nphi):
+                if s.malpha == 0:
+                    damp = 1
+                else:
+                    damp = viscous_damping_factor(rr)
 
-                  vr[j,i] += unl[j,i]*damp
-                  vphi[j,i] += vnl[j,i]*damp
-                  deltav[j,i] = (np.sqrt(vr[j,i]**2 + vphi[j,i]**2) - vK[j,i])/vK[j,i]
+                vr[j,i] += unl[j,i]*damp
+                vphi[j,i] += vnl[j,i]*damp
+                deltav[j,i] = (np.sqrt(vr[j,i]**2 + vphi[j,i]**2) - vK[j,i])/vK[j,i]
 
-       return vr,vphi,deltav
+    return vr,vphi,deltav
 
+def add_nonlinear_pert_cartesian(unl,vnl,vr,vphi,deltav,vK):
+
+    for i in range(len(s.x)):
+        for j in range(len(s.y)):
+            rr = np.sqrt(s.x[i]**2 + s.y[j]**2)
+            if rr < (s.Rp - s.x_match*s.l) or rr > (s.Rp + s.x_match*s.l):
+                if s.malpha == 0:
+                    damp = 1
+                else:
+                    damp = viscous_damping_factor(rr)
+            
+                vr[i,j] += unl[j,i]*damp
+                vphi[i,j] += vnl[j,i]*damp
+                deltav[i,j] = (np.sqrt(vr[i,j]**2 + vphi[i,j]**2) - vK[i,j])/vK[i,j]
+
+    return vr,vphi,deltav
 
 def merge_density_lin_nonlin(xl,yl,dl,dnl):
 
@@ -557,8 +624,38 @@ def merge_density_lin_nonlin(xl,yl,dl,dnl):
                    dnl[j,i] += dl[indy,indx]*damp
     return dnl
 
+def merge_density_lin_nonlin_cartesian(xl,yl,dl,dnl):
+
+    dnl = np.transpose(dnl)
+
+    for i in range(len(s.x)):
+        for j in range(len(s.y)):
+            pphi = np.arctan2(s.y[j], s.x[i])
+            if s.x[i] >= (s.Rp - s.x_match*s.l) and s.x[i]<= (s.Rp + s.x_match*s.l):
+                if s.y[j] >= - s.x_match*s.l and s.y[j] <= s.x_match*s.l and (pphi<np.pi/2 or pphi>3*np.pi/2):
+                    
+                    indx = np.argmin(np.abs(s.x[i]-xl)) # index of linear pert grid the best approximate the point (x[i],y[j]) of the disc grid .....
+                    indy = np.argmin(np.abs(s.y[j]-yl))
+                    if s.malpha == 0:
+                       damp = 1
+                    else:
+                       damp = viscous_damping_factor(s.X[0,i])
+
+                    dnl[i,j] += dl[indy,indx]*damp
+    
+    return dnl
+
 def get_normalise_density_field(dens_pert):
     return (s.R**(-s.p)*(1+dens_pert))
+
+def get_normalise_density_field_cartesian(dens_pert):
+    rho = np.zeros((len(s.x),len(s.y)))
+    for i in range(len(s.x)):
+        for j in range(len(s.y)):
+            rr = np.sqrt(s.x[i]**2 + s.y[j]**2)
+            rho[i,j] = rr**(-s.p)*(1+dens_pert[i,j])
+    return rho
+
 
 ## FUNCTIONS FOR PLOTS ....
 

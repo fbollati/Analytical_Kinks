@@ -20,7 +20,9 @@ vr = np.load(dir + '/vr.npy')
 f.make_contourplot(vr, bar_label='$v_r(r,\phi)$  [km/s]', saveas = dir + '/v_r.pdf')
 
 vphi = np.load(dir + '/vphi.npy')
-f.make_contourplot(vphi - (-s.cw * vK), bar_label='$v_{\phi}(r,\phi)$  [km/s]', saveas = dir + '/v_phi.pdf')
+f.make_contourplot(vphi, bar_label='$v_{\phi}(r,\phi)$  [km/s]', saveas = dir + '/v_phi.pdf')
+
+#  - (-s.cw * vK)
 
 deltav = np.load(dir + '/deltav.npy')
 f.make_contourplot(deltav, bar_label='$\delta v(r,\phi)$  [km/s]', saveas = dir + '/delta_v.pdf')
