@@ -141,7 +141,7 @@ def vKepler_plus_linear_pert_cartesian(xl,yl,ul,vl,vK):
     vphi = np.zeros((len(s.x),len(s.y)))
     deltav = np.zeros((len(s.x),len(s.y)))
 
-    #vphi = - s.cw * vK.copy()
+    vphi = - s.cw * vK.copy()
 
     for i in range(len(s.x)):
        if s.x[i] >= (s.Rp - s.x_match*s.l) and s.x[i]<= (s.Rp + s.x_match*s.l):
